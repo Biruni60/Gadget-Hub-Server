@@ -29,11 +29,15 @@ async function run() {
 
 
     const productCollection=client.db('productDB').collection('products');
-
+    const cartCollection=client.db('productDB').collection('cart')
 
 
       app.get('/allproduct',async(req,res)=>{
       const result= await productCollection.find().toArray();
+      res.send(result)
+  })
+      app.get('/cart',async(req,res)=>{
+      const result= await cartCollection.find().toArray();
       res.send(result)
   })
 
@@ -53,6 +57,14 @@ async function run() {
         res.send(result);
 
       })
+      app.get('/update/:id',async(req,res)=>{
+        const id=req.params.id;
+        
+        const query={_id:new ObjectId(id)};
+        const result=await productCollection.findOne(query);
+        res.send(result);
+
+      })
 
 
 
@@ -61,8 +73,37 @@ async function run() {
         const result=await productCollection.insertOne(product)
         res.send(result)
       })
+      app.post('/cart',async(req,res)=>{
+        const product=req.body;
+        const result=await cartCollection.insertOne(product)
+        res.send(result)
+      })
     
-
+      app.put('/update/:id',async(req,res)=>{
+        const id=req.params.id ;
+        const product=req.body;
+        const filter={_id:new ObjectId(id)};
+        const options = { upsert: true };
+      const updateProduct={
+        $set:{
+          name:product.name,
+          image:product.image,
+          brandName:product.brandName,
+          type:product.type,
+          price:product.price,
+          rating:product.rating
+        }
+      }
+        const result=await productCollection.updateOne(filter,updateProduct,options)
+        res.send(result)
+        
+      })
+      app.delete("/cart/:id",async(req,res)=>{
+        const id=req.params.id
+        const query={_id:new ObjectId(id)};
+        const result=await cartCollection.deleteOne(query)
+        res.send(result)
+      })
 
 
 
